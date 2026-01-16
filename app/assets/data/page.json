@@ -1,0 +1,84 @@
+{
+  "meta": {
+    "title": "Página de ejemplo",
+    "description": "Esta es una página de ejemplo para demostrar la estructura YAML."
+  },
+  "brand": {
+    "name": "EjemploMarca",
+    "logo": "https://placehold.co/100x100",
+    "link": "/"
+  },
+  "navigation": [
+    {
+      "label": "Home",
+      "link": "/",
+      "order": 1
+    },
+    {
+      "label": "About me",
+      "link": "/about",
+      "order": 2
+    },
+    {
+      "label": "Contacto",
+      "link": "/contact",
+      "order": 3
+    }
+  ],
+  "sections": {
+    "welcome": {
+      "id": "welcome",
+      "title": "Bienvenido a la Página de Ejemplo",
+      "description": "Esta sección de bienvenida introduce a los usuarios a la página."
+    },
+    "about": {
+      "id": "about",
+      "title": "Acerca de",
+      "description": "Esta sección describe sobre la página.",
+      "media": {
+        "type": "image",
+        "name": "Imagen de ejemplo",
+        "link": "https://placehold.co/600x400"
+      },
+      "features": [
+        {
+          "icon": "star",
+          "title": "Característica 1",
+          "description": "Descripción de la característica 1.",
+          "order": 1
+        },
+        {
+          "icon": "heart",
+          "title": "Característica 2",
+          "description": "Descripción de la característica 2.",
+          "order": 2
+        },
+        {
+          "icon": "rocket",
+          "title": "Característica 3",
+          "description": "Descripción de la característica 3.",
+          "order": 3
+        },
+        {
+          "icon": "brain",
+          "title": "Caracte 1",
+          "description": "Mas info",
+          "order": 4
+        }
+      ]
+    }
+  },
+  "footer": {
+    "copy": "© 2026 EjemploMarca. Todos los derechos reservados.",
+    "legal": [
+      {
+        "label": "Términos de Servicio",
+        "link": "/terms"
+      },
+      {
+        "label": "Política de Privacidad",
+        "link": "/privacy"
+      }
+    ]
+  }
+}

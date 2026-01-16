@@ -1,0 +1,98 @@
+meta:
+  - id: title
+    label: Title
+    type: string
+  - id: description
+    label: Description
+    type: string
+brand:
+  - id: name
+    label: Name
+    type: string
+  - id: logo
+    label: Logo
+    type: image
+  - id: link
+    label: Link
+    type: url
+navigation:
+  id: items
+  label: Items
+  type: list
+  fields:
+    - id: label
+      label: Label
+      type: string
+    - id: link
+      label: Link
+      type: url
+    - id: order
+      label: Order
+      type: number
+sections:
+  welcome:
+    - id: id
+      label: ID
+      type: string
+    - id: title
+      label: Title
+      type: string
+    - id: description
+      label: Description
+      type: string
+  about:
+    - id: id
+      label: ID
+      type: string
+    - id: title
+      label: Title
+      type: string
+    - id: description
+      label: Description
+      type: text
+    - id: media
+      label: Media
+      type: media
+      fields:
+        - id: type
+          label: Type
+          type: select
+          options:
+            - image
+            - video
+        - id: name
+          label: Name
+          type: string
+        - id: link
+          label: Link
+          type: url
+    - id: features
+      label: Features
+      type: list
+      fields:
+        - id: icon
+          label: Icon
+          type: string
+        - id: title
+          label: Title
+          type: string
+        - id: description
+          label: Description
+          type: string
+        - id: order
+          label: Order
+          type: number
+footer:
+  - id: copy
+    label: Copyright Text
+    type: string
+  - id: legal
+    label: Legal Links
+    type: list
+    fields:
+      - id: label
+        label: Label
+        type: string
+      - id: link
+        label: Link
+        type: url
