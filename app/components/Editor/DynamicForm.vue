@@ -1,129 +1,67 @@
 <template>
   <div class="space-y-8 max-w-4xl">
-    <!-- Meta Section -->
-    <UCard v-if="schema.meta">
+    <!-- Renderizar todas las secciones dinámicamente -->
+    <UCard v-for="(section, sectionKey) in schema" :key="sectionKey">
       <template #header>
         <div class="flex items-center gap-2">
-          <Icon name="i-lucide-info" class="w-5 h-5" />
+          <Icon name="i-lucide-layout-panel" class="w-5 h-5" />
           <div>
-            <h2 class="font-semibold text-lg">Metadatos</h2>
-            <p class="text-sm text-gray-500">Información general de la página</p>
+            <h2 class="font-semibold text-lg">{{ section.label }}</h2>
+            <p v-if="section.description" class="text-sm text-gray-500">{{ section.description }}</p>
           </div>
         </div>
       </template>
       <div class="space-y-4">
-        <div v-for="field in schema.meta" :key="field.id" class="space-y-1">
-          <label class="block text-sm font-medium">{{ field.label }}</label>
-          <DynamicField
-            :field="field"
-            :model-value="formState.meta?.[field.id]"
-            :error="getFieldError(`meta.${field.id}`)"
-            @update:model-value="updateField(['meta', field.id], $event)"
-          />
-        </div>
-      </div>
-    </UCard>
-
-    <!-- Brand Section -->
-    <UCard v-if="schema.brand">
-      <template #header>
-        <div class="flex items-center gap-2">
-          <Icon name="i-lucide-palette" class="w-5 h-5" />
-          <div>
-            <h2 class="font-semibold text-lg">Marca</h2>
-            <p class="text-sm text-gray-500">Logo, nombre y enlace de marca</p>
+        <!-- Validación: Sección sin fields -->
+        <div v-if="!section.fields || section.fields.length === 0" class="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+          <div class="flex items-start gap-2">
+            <Icon name="i-lucide-alert-triangle" class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <div class="text-sm text-yellow-800">
+              <p class="font-medium">Esta sección no tiene campos definidos</p>
+              <p class="text-yellow-700 mt-1">Debe agregar la propiedad <code class="bg-yellow-100 px-1 rounded">fields</code> al schema de esta sección.</p>
+            </div>
           </div>
         </div>
-      </template>
-      <div class="space-y-4">
-        <div v-for="field in schema.brand" :key="field.id" class="space-y-1">
-          <label class="block text-sm font-medium">{{ field.label }}</label>
-          <DynamicField
-            :field="field"
-            :model-value="formState.brand?.[field.id]"
-            :error="getFieldError(`brand.${field.id}`)"
-            :preview="field.type === 'image'"
-            @update:model-value="updateField(['brand', field.id], $event)"
-          />
-        </div>
-      </div>
-    </UCard>
 
-    <!-- Navigation Section -->
-    <UCard v-if="schema.navigation">
-      <template #header>
-        <div class="flex items-center gap-2">
-          <Icon name="i-lucide-menu" class="w-5 h-5" />
-          <div>
-            <h2 class="font-semibold text-lg">Navegación</h2>
-            <p class="text-sm text-gray-500">Enlaces principales del sitio</p>
-          </div>
-        </div>
-      </template>
-      <div class="space-y-4">
-        <FieldList
-          :field="schema.navigation"
-          :model-value="formState.navigation || []"
-          :errors="validationErrors"
-          @update:model-value="updateField(['navigation'], $event)"
-        />
-      </div>
-    </UCard>
-
-    <!-- Sections (dynamic) -->
-    <template v-if="schema.sections">
-      <template v-for="(sectionData, sectionKey) in schema.sections" :key="sectionKey">
-        <UCard
-          v-if="Array.isArray(sectionData)"
-        >
-          <template #header>
-            <div class="flex items-center gap-2">
-              <Icon name="i-lucide-layout-panel" class="w-5 h-5" />
-              <div>
-                <h2 class="font-semibold text-lg">{{ capitalize(sectionKey) }}</h2>
-                <p class="text-sm text-gray-500">Contenido de la sección {{ sectionKey }}</p>
+        <!-- Renderizar campos de la sección -->
+        <template v-else>
+          <div v-for="field in section.fields" :key="field.id" class="space-y-1">
+            <!-- Validación: Field sin type -->
+            <div v-if="!field?.type" class="p-4 bg-red-50 border border-red-200 rounded-md">
+              <div class="flex items-start gap-2">
+                <Icon name="i-lucide-x-circle" class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div class="text-sm text-red-800">
+                  <p class="font-medium">El campo "{{ field.label || field.id }}" no tiene definida la propiedad <code class="bg-red-100 px-1 rounded">type</code></p>
+                  <p class="text-red-700 mt-1">Debe especificar el tipo de campo en el schema.</p>
+                </div>
               </div>
             </div>
-          </template>
-          <div class="space-y-4">
-            <div v-for="field in sectionData" :key="field.id" class="space-y-1">
-              <label class="block text-sm font-medium">{{ field.label }}</label>
-              <DynamicField
-                :field="field"
-                :model-value="formState.sections?.[sectionKey]?.[field.id]"
-                :error="getFieldError(`sections.${sectionKey}.${field.id}`)"
-                :errors="validationErrors"
-                :preview="field.type === 'image'"
-                @update:model-value="updateField(['sections', sectionKey, field.id], $event)"
-              />
-            </div>
-          </div>
-        </UCard>
-      </template>
-    </template>
 
-    <!-- Footer Section -->
-    <UCard v-if="schema.footer">
-      <template #header>
-        <div class="flex items-center gap-2">
-          <Icon name="i-lucide-footer" class="w-5 h-5" />
-          <div>
-            <h2 class="font-semibold text-lg">Pie de página</h2>
-            <p class="text-sm text-gray-500">Información del footer del sitio</p>
+            <template v-else>
+              <label class="block text-sm font-medium">{{ field.label }}</label>
+
+              <!-- Campo tipo list anidado -->
+              <FieldList
+                v-if="field.type === 'list'"
+                :field="field"
+                :model-value="formState[sectionKey]?.[field.id] || []"
+                :errors="validationErrors"
+                @update:model-value="updateField([sectionKey, field.id], $event)"
+              />
+
+              <!-- Otros tipos de campos -->
+              <DynamicField
+                v-else
+                :field="field"
+                :model-value="formState[sectionKey]?.[field.id]"
+                :error="getFieldError(`${sectionKey}.${field.id}`)"
+                :errors="validationErrors"
+                :preview="field?.type === 'image'"
+                @update:model-value="updateField([sectionKey, field?.id], $event)"
+              />
+            </template>
           </div>
-        </div>
-      </template>
-      <div class="space-y-4">
-        <div v-for="field in schema.footer" :key="field.id" class="space-y-1">
-          <label class="block text-sm font-medium">{{ field.label }}</label>
-          <DynamicField
-            :field="field"
-            :model-value="formState.footer?.[field.id]"
-            :error="getFieldError(`footer.${field.id}`)"
-            :errors="validationErrors"
-            @update:model-value="updateField(['footer', field.id], $event)"
-          />
-        </div>
+        </template>
       </div>
     </UCard>
 
@@ -147,6 +85,10 @@
         <Icon name="i-lucide-check" />
         {{ successMessage }}
       </div>
+      <div v-if="resetMessage" class="flex items-center gap-2 text-blue-600 text-sm">
+        <Icon name="i-lucide-rotate-ccw" />
+        {{ resetMessage }}
+      </div>
       <div v-if="validationErrors && Object.keys(validationErrors).length > 0" class="flex items-center gap-2 text-red-600 text-sm">
         <Icon name="i-lucide-alert-circle" />
         Hay {{ Object.keys(validationErrors).length }} error(es) en el formulario: {{ errorDetails.join('; ') }}
@@ -157,20 +99,14 @@
 
 <script setup lang="ts">
 import { reactive, ref, computed } from 'vue'
-import type { SchemaField } from '~/composables/useSchemaValidator'
+import type { SchemaField, SchemaSection } from '~/composables/useSchemaValidator'
 import { createZodSchemaFromFields } from '~/composables/useSchemaValidator'
 import DynamicField from '~/components/Editor/DynamicField.vue'
 import FieldList from '~/components/Editor/FieldList.vue'
 import { z } from 'zod'
 
 const props = defineProps<{
-  schema: {
-    meta?: SchemaField[]
-    brand?: SchemaField[]
-    navigation?: SchemaField
-    sections?: Record<string, SchemaField[]>
-    footer?: SchemaField[]
-  }
+  schema: Record<string, SchemaSection>
   initialData: Record<string, any>
   onSave?: (data: Record<string, any>) => Promise<void>
 }>()
@@ -179,33 +115,18 @@ const formState = reactive({ ...props.initialData })
 const validationErrors = ref<Record<string, string[]> | null>(null)
 const isSaving = ref(false)
 const successMessage = ref('')
+const resetMessage = ref('')
 
 // Crear esquema de validación completo
 const validationSchema = computed(() => {
   const schemaFields: Record<string, z.ZodTypeAny> = {}
 
-  if (props.schema.meta) {
-    schemaFields.meta = createZodSchemaFromFields(props.schema.meta)
-  }
-  if (props.schema.brand) {
-    schemaFields.brand = createZodSchemaFromFields(props.schema.brand)
-  }
-  if (props.schema.navigation) {
-    const navFields = props.schema.navigation.fields || []
-    schemaFields.navigation = z.array(createZodSchemaFromFields(navFields))
-  }
-  if (props.schema.sections) {
-    const sectionSchemas: Record<string, z.ZodTypeAny> = {}
-    Object.entries(props.schema.sections).forEach(([key, fields]) => {
-      if (Array.isArray(fields)) {
-        sectionSchemas[key] = createZodSchemaFromFields(fields)
-      }
-    })
-    schemaFields.sections = z.object(sectionSchemas)
-  }
-  if (props.schema.footer) {
-    schemaFields.footer = createZodSchemaFromFields(props.schema.footer)
-  }
+  Object.entries(props.schema).forEach(([sectionKey, section]) => {
+    if (section.fields) {
+      // Todas las secciones tienen campos normales
+      schemaFields[sectionKey] = createZodSchemaFromFields(section.fields)
+    }
+  })
 
   return z.object(schemaFields)
 })
@@ -234,6 +155,27 @@ const getFieldError = (fieldPath: string): string | null => {
   return validationErrors.value[fieldPath]?.[0] || null
 }
 
+// Añade el campo 'order' a todos los items de listas
+const addOrderToLists = (data: Record<string, any>) => {
+  const processedData = JSON.parse(JSON.stringify(data))
+
+  Object.entries(props.schema).forEach(([sectionKey, section]) => {
+    // Campos tipo list anidados dentro de secciones
+    if (section.fields && processedData[sectionKey]) {
+      section.fields.forEach((field: SchemaField) => {
+        if (field.type === 'list' && Array.isArray(processedData[sectionKey]?.[field.id])) {
+          processedData[sectionKey][field.id] = processedData[sectionKey][field.id].map((item: any, index: number) => ({
+            ...item,
+            order: index
+          }))
+        }
+      })
+    }
+  })
+
+  return processedData
+}
+
 const saveChanges = async () => {
   isSaving.value = true
   successMessage.value = ''
@@ -260,8 +202,11 @@ const saveChanges = async () => {
       throw new Error('Por favor corrige los errores antes de guardar')
     }
 
+    // Añadir campo 'order' a todos los items de listas
+    const dataWithOrder = addOrderToLists(result.data)
+
     if (props.onSave) {
-      await props.onSave(result.data)
+      await props.onSave(dataWithOrder)
       validationErrors.value = null
       successMessage.value = '¡Cambios guardados exitosamente!'
       setTimeout(() => {
@@ -283,9 +228,11 @@ const resetForm = () => {
   Object.assign(formState, props.initialData)
   validationErrors.value = null
   successMessage.value = ''
+  resetMessage.value = '¡Cambios descartados!'
+  setTimeout(() => {
+    resetMessage.value = ''
+  }, 3000)
 }
-
-const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1)
 
 // Genera descripciones legibles de los errores por campo
 const errorDetails = computed(() => {
@@ -298,66 +245,46 @@ const errorDetails = computed(() => {
     return field?.label ?? id
   }
 
-  const describeNavigation = (segments: string[]) => {
-    // navigation.<index>.<fieldId>
-    const index = Number(segments[1])
-    const fieldId = segments[2]
-    const fieldLabel = getLabelFromArray(props.schema.navigation?.fields || [], fieldId!)
-    return `Navegación → Ítem ${isNaN(index) ? '?' : index + 1} → ${fieldLabel}`
-  }
-
-  const describeSection = (segments: string[]) => {
-    // sections.<sectionKey>.<fieldId | listId>.[index].<nestedFieldId>
-    const sectionKey = segments[1]
-    const sectionFields = props.schema.sections?.[sectionKey!]
-    if (!Array.isArray(sectionFields)) return `Sección ${capitalize(sectionKey!)} → ${segments.slice(2).join('.')}`
-
-    const first = segments[2]
-    const second = segments[3]
-    const third = segments[4]
-
-    // Caso lista anidada: features.0.title
-    const listField = sectionFields.find(f => f.id === first)
-    if (listField?.type === 'list' && listField.fields && second !== undefined && third !== undefined) {
-      const idx = Number(second)
-      const nestedLabel = getLabelFromArray(listField.fields, third!)
-      return `Sección ${capitalize(sectionKey!)} → ${listField.label} → Ítem ${isNaN(idx) ? '?' : idx + 1} → ${nestedLabel}`
-    }
-
-    // Campo simple
-    const fieldLabel = getLabelFromArray(sectionFields, first!)
-    return `Sección ${capitalize(sectionKey!)} → ${fieldLabel}`
-  }
-
   Object.entries(validationErrors.value).forEach(([path]) => {
     const segments = path.split('.')
-    const root = segments[0]
+    const sectionKey = segments[0]!
+    const section = props.schema[sectionKey]
 
-    if (root === 'meta') {
-      const label = getLabelFromArray(props.schema.meta, segments[1]!)
-      details.push(`Metadatos → ${label}`)
+    if (!section) {
+      details.push(path)
       return
     }
 
-    if (root === 'brand') {
-      const label = getLabelFromArray(props.schema.brand, segments[1]!)
-      details.push(`Marca → ${label}`)
+    // Sección tipo list (ej: navigation)
+    if (section.type === 'list') {
+      const index = Number(segments[1])
+      const fieldId = segments[2]
+      const fieldLabel = getLabelFromArray(section.fields || [], fieldId!)
+      details.push(`${section.label} → Ítem ${isNaN(index) ? '?' : index + 1} → ${fieldLabel}`)
       return
     }
 
-    if (root === 'footer') {
-      const label = getLabelFromArray(props.schema.footer, segments[1]!)
-      details.push(`Pie de página → ${label}`)
-      return
-    }
+    // Sección con campos normales
+    if (section.fields) {
+      const fieldId = segments[1]
+      const field = section.fields.find(f => f.id === fieldId)
 
-    if (root === 'navigation') {
-      details.push(describeNavigation(segments))
-      return
-    }
+      if (!field) {
+        details.push(`${section.label} → ${fieldId}`)
+        return
+      }
 
-    if (root === 'sections') {
-      details.push(describeSection(segments))
+      // Campo tipo list anidado
+      if (field.type === 'list' && segments[2] !== undefined) {
+        const index = Number(segments[2])
+        const nestedFieldId = segments[3]
+        const nestedLabel = getLabelFromArray(field.fields || [], nestedFieldId!)
+        details.push(`${section.label} → ${field.label} → Ítem ${isNaN(index) ? '?' : index + 1} → ${nestedLabel}`)
+        return
+      }
+
+      // Campo simple
+      details.push(`${section.label} → ${field.label}`)
       return
     }
 

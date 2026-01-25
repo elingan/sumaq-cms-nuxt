@@ -1,28 +1,44 @@
 import { z } from 'zod'
 
+export interface SelectOption {
+  value: string
+  label: string
+}
+
+export interface SelectOptionsConfig {
+  values?: string[] | SelectOption[]
+  multiple?: boolean
+}
+
 export interface SchemaField {
   id: string
   label: string
   type: string
-  options?: string[]
+  options?: string[] | SelectOptionsConfig
   fields?: SchemaField[]
   [key: string]: any
 }
 
 export interface SchemaSection {
-  [key: string]: SchemaField[] | { id: string; label: string; type: string; fields?: SchemaField[] }
+  id: string
+  label: string
+  description?: string
+  fields?: SchemaField[]
 }
 
 /**
  * Convierte un tipo de esquema YAML a un esquema Zod
  */
-function fieldTypeToZod(field: SchemaField): z.ZodTypeAny {
+function fieldTypeToZod(field: SchemaField, isNested: boolean = false): z.ZodTypeAny {
   switch (field.type) {
     case 'string':
-      return z.string().min(1, `${field.label} es requerido`)
+      return isNested ? z.string().optional() : z.string().min(1, `${field.label} es requerido`)
 
     case 'text':
-      return z.string().min(1, `${field.label} es requerido`)
+      return isNested ? z.string().optional() : z.string().min(1, `${field.label} es requerido`)
+
+    case 'richtext':
+      return isNested ? z.string().optional() : z.string().min(1, `${field.label} es requerido`)
 
     case 'number':
       return z.number().or(z.string().transform(Number))
@@ -42,33 +58,90 @@ function fieldTypeToZod(field: SchemaField): z.ZodTypeAny {
         }
       }
 
-      return z
+      const urlSchema = z
         .string()
-        .min(1, `${field.label} es requerido`)
         .refine(isUrlOrRelativeAnchor, `${field.label} debe ser una URL válida (http(s), relativa o ancla #) `)
+
+      return isNested ? urlSchema.optional() : urlSchema.min(1, `${field.label} es requerido`)
     }
 
     case 'image':
       return z.string().url(`${field.label} debe ser una URL de imagen válida`)
 
-    case 'select':
-      if (field.options?.length) {
-        return z.enum(field.options as [string, ...string[]])
+    case 'select': {
+      // Support multiple formats:
+      // 1. Legacy: options: ["value1", "value2"]
+      // 2. New: options: { values: ["value1", "value2"] }
+      // 3. New: options: { values: [{ value: "v1", label: "Label 1" }] }
+      // 4. Multiple: options: { multiple: true, values: [...] }
+
+      let validValues: string[] = []
+      let isMultiple = false
+
+      // Legacy format: direct array
+      if (Array.isArray(field.options)) {
+        validValues = field.options
       }
+      // New format: options object with values
+      else if (field.options && typeof field.options === 'object' && !Array.isArray(field.options)) {
+        isMultiple = field.options.multiple === true
+        const values = field.options.values
+
+        if (Array.isArray(values) && values.length > 0) {
+          // Array of strings
+          if (typeof values[0] === 'string') {
+            validValues = values as string[]
+          }
+          // Array of objects with value/label
+          else if (typeof values[0] === 'object' && 'value' in values[0]) {
+            validValues = (values as SelectOption[]).map((opt) => opt.value)
+          }
+        }
+      }
+
+      // Create enum schema from valid values
+      if (validValues.length > 0) {
+        const enumSchema = z.enum(validValues as [string, ...string[]])
+        // Multiple selection returns array
+        if (isMultiple) {
+          return isNested ? z.array(enumSchema).optional() : z.array(enumSchema).min(1, `Selecciona al menos un ${field.label}`)
+        }
+        return enumSchema
+      }
+
+      // Fallback to string if no valid options
       return z.string()
+    }
+
+    case 'object': {
+      // Objeto con campos anidados
+      if (field.fields?.length) {
+        const objectSchema = z.object(
+          field.fields.reduce((acc, nestedField) => {
+            // Los campos dentro de objetos heredan el estado nested
+            acc[nestedField.id] = fieldTypeToZod(nestedField, true)
+            return acc
+          }, {} as Record<string, z.ZodTypeAny>)
+        )
+        return isNested ? objectSchema.optional() : objectSchema
+      }
+      return z.object({}).optional()
+    }
 
     case 'list': {
       // Lista con campos anidados
       if (field.fields?.length) {
         const nestedSchema = z.object(
           field.fields.reduce((acc, nestedField) => {
-            acc[nestedField.id] = fieldTypeToZod(nestedField)
+            // Los campos dentro de listas son opcionales
+            acc[nestedField.id] = fieldTypeToZod(nestedField, true)
             return acc
           }, {} as Record<string, z.ZodTypeAny>)
         )
-        return z.array(nestedSchema)
+        // Array puede estar vacío
+        return z.array(nestedSchema).optional().default([])
       }
-      return z.array(z.any())
+      return z.array(z.any()).optional().default([])
     }
 
     case 'media': {
@@ -76,11 +149,12 @@ function fieldTypeToZod(field: SchemaField): z.ZodTypeAny {
       if (field.fields?.length) {
         const mediaSchema = z.object(
           field.fields.reduce((acc, mediaField) => {
-            acc[mediaField.id] = fieldTypeToZod(mediaField)
+            // Los campos dentro de media también pueden ser opcionales si están anidados
+            acc[mediaField.id] = fieldTypeToZod(mediaField, isNested)
             return acc
           }, {} as Record<string, z.ZodTypeAny>)
         )
-        return mediaSchema
+        return isNested ? mediaSchema.optional() : mediaSchema
       }
       return z.object({ type: z.string(), link: z.string().url() })
     }

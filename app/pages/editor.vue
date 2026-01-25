@@ -40,7 +40,7 @@
           </div>
 
           <DynamicForm
-            v-if="schema.meta || schema.brand"
+            v-if="Object.keys(schema).length > 0"
             :schema="schema"
             :initial-data="pageData"
             :on-save="handleSave"

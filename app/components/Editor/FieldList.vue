@@ -3,13 +3,15 @@
     <div ref="listContainer" class="space-y-3">
       <div
         v-for="(item, idx) in modelValue"
-        :key="idx"
+        :key="getItemKey(item, idx)"
         :data-id="idx"
-        class="border border-gray-300 rounded-lg p-4 space-y-3 bg-white cursor-move hover:shadow-md transition-shadow"
+        class="border border-gray-300 rounded-lg p-4 space-y-3 bg-white hover:shadow-md transition-shadow"
       >
         <div class="flex justify-between items-center mb-4">
           <div class="flex items-center gap-2">
-            <Icon name="i-lucide-grip-vertical" class="text-gray-400 cursor-grab active:cursor-grabbing" />
+            <div class="drag-handle cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 rounded">
+              <Icon name="i-lucide-grip-vertical" class="text-gray-400 w-5 h-5" />
+            </div>
             <h4 class="font-semibold text-sm">{{ field.label }} #{{ idx + 1 }}</h4>
           </div>
           <UButton
@@ -62,21 +64,50 @@ const emit = defineEmits<{
 }>()
 
 const listContainer = ref<HTMLElement | null>(null)
+const itemKeys = ref<Map<any, string>>(new Map())
+let keyCounter = 0
+
+// Generar key única para cada item
+const getItemKey = (item: any, idx: number): string => {
+  if (!itemKeys.value.has(item)) {
+    itemKeys.value.set(item, `item-${keyCounter++}-${idx}`)
+  }
+  return itemKeys.value.get(item)!
+}
+
+// Limpiar keys huérfanas
+watch(() => props.modelValue, (newValue) => {
+  const currentItems = new Set(newValue)
+  const keysToDelete: any[] = []
+
+  itemKeys.value.forEach((_, item) => {
+    if (!currentItems.has(item)) {
+      keysToDelete.push(item)
+    }
+  })
+
+  keysToDelete.forEach(item => itemKeys.value.delete(item))
+}, { deep: true })
 
 onMounted(() => {
   if (listContainer.value) {
     Sortable.create(listContainer.value, {
       animation: 150,
-      handle: '.i-lucide-grip-vertical',
+      handle: '.drag-handle',
       ghostClass: 'opacity-50',
       dragClass: 'shadow-xl',
+      forceFallback: true,
       onEnd: (event) => {
         const { oldIndex, newIndex } = event
         if (oldIndex !== undefined && newIndex !== undefined && oldIndex !== newIndex) {
           const items = [...props.modelValue]
           const [movedItem] = items.splice(oldIndex, 1)
           items.splice(newIndex, 0, movedItem)
-          emit('update:modelValue', items)
+
+          // Forzar actualización de keys
+          nextTick(() => {
+            emit('update:modelValue', items)
+          })
         }
       }
     })
