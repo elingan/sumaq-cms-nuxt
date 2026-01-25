@@ -4,7 +4,7 @@
     <UCard v-for="(section, sectionKey) in schema" :key="sectionKey">
       <template #header>
         <div class="flex items-center gap-2">
-          <Icon name="i-lucide-layout-panel" class="w-5 h-5" />
+          <Icon name="i-lucide-layout-panel-left" class="w-5 h-5" />
           <div>
             <h2 class="font-semibold text-lg">{{ section.label }}</h2>
             <p v-if="section.description" class="text-sm text-gray-500">{{ section.description }}</p>

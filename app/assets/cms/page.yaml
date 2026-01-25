@@ -66,6 +66,9 @@ about:
     - id: description
       label: Description
       type: text
+    - id: content
+      label: Rich Content
+      type: richtext
     - id: category
       label: Category
       type: select
