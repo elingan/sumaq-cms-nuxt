@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "Blog",
+    "description": "Artículos y noticias",
+    "postsPerPage": 10
+  }
+}

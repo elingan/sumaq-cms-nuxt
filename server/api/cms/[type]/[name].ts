@@ -17,9 +17,17 @@ export default defineEventHandler(async (event) => {
 
   // Construct paths
   const schemaPath = join(process.cwd(), `public/cms/${type}.${name}.yaml`)
-  const dataPath = type === 'blog'
-    ? join(process.cwd(), `public/data/${name}/index.json`)
-    : join(process.cwd(), `public/data/${name}.json`)
+
+  // page.* types use _index.json, blog.* not allowed here (use blog endpoints)
+  let dataPath: string
+  if (type === 'page') {
+    dataPath = join(process.cwd(), `public/data/${name}/_index.json`)
+  } else {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Use /api/cms/blog endpoints for blog entries'
+    })
+  }
 
   if (method === 'GET') {
     try {
@@ -56,12 +64,10 @@ export default defineEventHandler(async (event) => {
     try {
       const body = await readBody(event)
 
-      // Ensure directory exists for blog type
-      if (type === 'blog') {
-        const dataDir = join(process.cwd(), `public/data/${name}`)
-        if (!fs.existsSync(dataDir)) {
-          fs.mkdirSync(dataDir, { recursive: true })
-        }
+      // Ensure directory exists
+      const dataDir = join(process.cwd(), `public/data/${name}`)
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true })
       }
 
       // Write data file
