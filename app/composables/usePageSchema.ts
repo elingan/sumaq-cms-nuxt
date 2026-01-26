@@ -3,14 +3,21 @@ import type { SchemaSection } from '~/composables/useSchemaValidator'
 import schemaYaml from '~/assets/cms/page.yaml?raw'
 import yaml from 'js-yaml'
 
-export const usePageSchema = () => {
+export const usePageSchema = (type?: string, name?: string) => {
   const schema = ref<Record<string, SchemaSection>>({})
 
   const loadSchema = async () => {
     try {
-      // Parsear el esquema YAML
-      const schemaData = yaml.load(schemaYaml) as Record<string, SchemaSection>
+      // Si se proveen type y name, cargar dinámicamente desde public
+      if (type && name) {
+        const schemaText = await $fetch(`/cms/${type}.${name}.yaml`, { responseType: 'text' })
+        const schemaData = yaml.load(schemaText) as Record<string, SchemaSection>
+        Object.assign(schema.value, schemaData)
+        return schema.value
+      }
 
+      // Fallback a importación estática legacy
+      const schemaData = yaml.load(schemaYaml) as Record<string, SchemaSection>
       Object.assign(schema.value, schemaData)
       return schema.value
     } catch (error) {

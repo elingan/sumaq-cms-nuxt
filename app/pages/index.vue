@@ -1,10 +1,16 @@
 <template>
-  <div>
+  <div class="flex flex-col gap-8 py-8 px-4 md:px-8 lg:px-16">
     <NuxtLink
       to="/editor"
       class="text-blue-600 underline"
     >
       Ir al Editor de Contenidos
+    </NuxtLink>
+        <NuxtLink
+      to="/content"
+      class="text-blue-600 underline"
+    >
+      Ir a Contenidos
     </NuxtLink>
 
     <!-- <UPageHero
