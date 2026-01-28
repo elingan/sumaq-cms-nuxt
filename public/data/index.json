@@ -36,7 +36,7 @@
     "id": "about",
     "title": "Acerca de",
     "description": "Esta sección describe sobre la página.",
-    "content": "<h2>Bienvenido al Editor Rico</h2><p>Este es un ejemplo de <strong>texto enriquecido</strong> con <em><s>múltiples</s> formatos</em>.</p><h3>Características</h3><ul><li><p>Listas con viñetas</p></li><li><p>Texto en <strong>negrita</strong> y <em>cursiva</em></p></li><li><p>Enlaces y más</p></li></ul><blockquote><p>Esta es una cita importante</p></blockquote><p>También puedes agregar <code>código en línea</code> y bloques de código.</p>",
+    "content": "<h2>Bienvenido al Editor Rico</h2><p>Este es un ejemplo de <strong>texto enriquecido</strong> con <em><s>múltiples</s> formatos</em>.</p><h3>Características</h3><ul><li><p>Listas con viñetas</p></li><li><p>Texto en <strong>negrita</strong> y <em>cursiva</em></p></li><li><p>Enlaces y más</p></li></ul><blockquote><p>Esta es una cita importante</p></blockquote><p>También puedes agregar <code>código en línea</code> y bloques de <strong>código</strong>.</p>",
     "category": "News",
     "author": "patricia",
     "tags": [

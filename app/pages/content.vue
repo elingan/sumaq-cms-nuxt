@@ -17,7 +17,7 @@
 
       <div v-else-if="contentTypes && contentTypes.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <NuxtLink
-          v-for="item in contentTypes"
+          v-for="item in sortedContentTypes"
           :key="`${item.type}.${item.name}`"
           :to="`/cms/${item.type}/${item.name}`"
           class="block"
@@ -31,8 +31,8 @@
                 />
               </div>
               <div class="flex-1">
-                <h3 class="font-semibold text-lg text-gray-900">
-                  {{ item.type }}.{{ item.name }}
+                <h3 class="font-semibold text-lg text-gray-900 capitalize">
+                  {{ item.name }}
                 </h3>
                 <p class="text-sm text-gray-500 mt-1">
                   {{ item.type === 'page' ? 'Página' : 'Blog' }}
@@ -67,4 +67,14 @@ useHead({
 })
 
 const { contentTypes, pending, error } = useContentTypes()
+
+const sortedContentTypes = computed(() => {
+  if (!contentTypes.value) return []
+  return [...contentTypes.value].sort((a, b) => {
+    if (a.type === b.type) {
+      return a.name.localeCompare(b.name)
+    }
+    return a.type.localeCompare(b.type)
+  })
+})
 </script>

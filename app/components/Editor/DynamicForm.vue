@@ -111,7 +111,22 @@ const props = defineProps<{
   onSave?: (data: Record<string, any>) => Promise<void>
 }>()
 
-const formState = reactive({ ...props.initialData })
+// Inicializar formState con estructura base del schema + datos iniciales
+const initializeFormState = () => {
+  const baseState: Record<string, any> = {}
+
+  // Crear estructura base para cada sección
+  Object.keys(props.schema).forEach((sectionKey) => {
+    baseState[sectionKey] = {}
+  })
+
+  // Sobrescribir con datos iniciales si existen
+  Object.assign(baseState, props.initialData)
+
+  return baseState
+}
+
+const formState = reactive(initializeFormState())
 const validationErrors = ref<Record<string, string[]> | null>(null)
 const isSaving = ref(false)
 const successMessage = ref('')
@@ -225,7 +240,9 @@ const saveChanges = async () => {
 }
 
 const resetForm = () => {
-  Object.assign(formState, props.initialData)
+  const resetData = initializeFormState()
+  Object.keys(formState).forEach(key => delete formState[key])
+  Object.assign(formState, resetData)
   validationErrors.value = null
   successMessage.value = ''
   resetMessage.value = '¡Cambios descartados!'

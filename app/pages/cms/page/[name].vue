@@ -69,7 +69,7 @@ definePageMeta({
 })
 
 const route = useRoute()
-const type = computed(() => route.params.type as string)
+const type = computed(() => 'page')
 const name = computed(() => route.params.name as string)
 
 const contentTitle = computed(() => {

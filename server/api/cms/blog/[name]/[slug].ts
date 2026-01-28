@@ -7,6 +7,7 @@ export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug')
   const method = event.node.req.method
 
+  // Validate parameters
   if (!name || !slug) {
     throw createError({
       statusCode: 400,
@@ -14,6 +15,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Construct paths
   const schemaPath = join(process.cwd(), `public/cms/blog.${name}.yaml`)
   const dataDir = join(process.cwd(), `public/data/${name}`)
   const dataPath = join(dataDir, `${slug}.json`)
@@ -24,7 +26,7 @@ export default defineEventHandler(async (event) => {
       if (!fs.existsSync(schemaPath)) {
         throw createError({
           statusCode: 404,
-          statusMessage: `Schema not found: blog.${name}`
+          statusMessage: `Schema not found: blog.${name}.yaml`
         })
       }
 
@@ -32,7 +34,7 @@ export default defineEventHandler(async (event) => {
       const schemaRaw = fs.readFileSync(schemaPath, 'utf-8')
       const schema = yaml.load(schemaRaw)
 
-      // Read data if exists (for edit), otherwise return empty (for new)
+      // Read data if exists, otherwise return empty object
       let data = {}
       if (slug !== 'new' && fs.existsSync(dataPath)) {
         const dataRaw = fs.readFileSync(dataPath, 'utf-8')
@@ -73,7 +75,7 @@ export default defineEventHandler(async (event) => {
         })
       }
 
-      // Ensure directory exists
+      // Ensure directory exists (for data folder)
       if (!fs.existsSync(dataDir)) {
         fs.mkdirSync(dataDir, { recursive: true })
       }

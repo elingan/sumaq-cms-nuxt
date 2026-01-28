@@ -3,7 +3,7 @@ import { join } from 'path'
 import yaml from 'js-yaml'
 
 export default defineEventHandler(async (event) => {
-  const type = getRouterParam(event, 'type')
+  const type = 'page' //getRouterParam(event, 'type')
   const name = getRouterParam(event, 'name')
   const method = event.node.req.method
 
@@ -18,10 +18,10 @@ export default defineEventHandler(async (event) => {
   // Construct paths
   const schemaPath = join(process.cwd(), `public/cms/${type}.${name}.yaml`)
 
-  // page.* types use _index.json, blog.* not allowed here (use blog endpoints)
+  // page.* types use {name}.json
   let dataPath: string
   if (type === 'page') {
-    dataPath = join(process.cwd(), `public/data/${name}/_index.json`)
+    dataPath = join(process.cwd(), `public/data/${name}.json`)
   } else {
     throw createError({
       statusCode: 400,
@@ -64,8 +64,8 @@ export default defineEventHandler(async (event) => {
     try {
       const body = await readBody(event)
 
-      // Ensure directory exists
-      const dataDir = join(process.cwd(), `public/data/${name}`)
+      // Ensure directory exists (for data folder)
+      const dataDir = join(process.cwd(), 'public/data')
       if (!fs.existsSync(dataDir)) {
         fs.mkdirSync(dataDir, { recursive: true })
       }

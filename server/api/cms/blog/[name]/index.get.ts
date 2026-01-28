@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const dataDir = join(process.cwd(), `public/data/${name}`)
+  const dataDir = join(process.cwd(), 'public/data', name)
 
   try {
     // Check if directory exists
@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
     // Read all .json files except _index.json
     const files = fs.readdirSync(dataDir)
     const entries = files
-      .filter(file => file.endsWith('.json') && file !== '_index.json')
+      .filter(file => file.endsWith('.json'))
       .map(file => {
         const filePath = join(dataDir, file)
         const content = fs.readFileSync(filePath, 'utf-8')

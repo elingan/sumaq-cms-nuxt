@@ -43,6 +43,12 @@ function fieldTypeToZod(field: SchemaField, isNested: boolean = false): z.ZodTyp
     case 'number':
       return z.number().or(z.string().transform(Number))
 
+    case 'date':
+      return isNested ? z.string().optional() : z.string().min(1, `${field.label} es requerido`)
+
+    case 'boolean':
+      return z.boolean().optional().default(field.default ?? false)
+
     case 'url': {
       const isUrlOrRelativeAnchor = (value: string) => {
         if (typeof value !== 'string' || value.trim().length === 0) return false

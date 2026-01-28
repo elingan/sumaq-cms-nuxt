@@ -34,6 +34,8 @@ import FieldImage from '~/components/Editor/FieldImage.vue'
 import FieldObject from '~/components/Editor/FieldObject.vue'
 import FieldList from '~/components/Editor/FieldList.vue'
 import FieldMedia from '~/components/Editor/FieldMedia.vue'
+import FieldDate from '~/components/Editor/FieldDate.vue'
+import FieldBoolean from '~/components/Editor/FieldBoolean.vue'
 
 const props = defineProps<{
   field: SchemaField
@@ -48,7 +50,7 @@ defineEmits<{
 }>()
 
 const componentExists = (type: string): boolean => {
-  const validTypes = ['string', 'text', 'richtext', 'number', 'select', 'url', 'image', 'video', 'object', 'list', 'media']
+  const validTypes = ['string', 'text', 'richtext', 'number', 'select', 'url', 'image', 'video', 'object', 'list', 'media', 'date', 'boolean']
   return validTypes.includes(type)
 }
 
@@ -64,7 +66,9 @@ const getFieldComponent = (type: string) => {
     video: FieldImage,
     object: FieldObject,
     list: FieldList,
-    media: FieldMedia
+    media: FieldMedia,
+    date: FieldDate,
+    boolean: FieldBoolean
   }
 
   return components[type] || FieldString
